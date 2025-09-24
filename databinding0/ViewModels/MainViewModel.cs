@@ -66,10 +66,10 @@ namespace databinding0.ViewModels
 
         public MainViewModel()
         {
-            IntervalStart = -5;
-            IntervalEnd = 5;
+            IntervalStart = -2;
+            IntervalEnd = 4;
             Precision = 0.01;
-            Function = "x^2 - 4";
+            Function = "x^3 - 4";
             DecimalPlaces = 3;
 
             FindRootCommand = new RelayCommand(_ => FindRoot());
@@ -107,14 +107,40 @@ namespace databinding0.ViewModels
                 var evaluator = new FunctionEvaluator(Function);
 
                 var model = new PlotModel { Title = $"График функции: {Function}" };
-                var series = new LineSeries { MarkerType = MarkerType.None };
 
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis
+                {
+                    Position = OxyPlot.Axes.AxisPosition.Bottom,
+                    Title = "X",
+                    MajorGridlineStyle = OxyPlot.LineStyle.Solid,
+                    MinorGridlineStyle = OxyPlot.LineStyle.Dot
+                });
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis
+                {
+                    Position = OxyPlot.Axes.AxisPosition.Left,
+                    Title = "Y",
+                    MajorGridlineStyle = OxyPlot.LineStyle.Solid,
+                    MinorGridlineStyle = OxyPlot.LineStyle.Dot
+                });
+
+                var series = new LineSeries { MarkerType = MarkerType.None };
                 for (double x = IntervalStart; x <= IntervalEnd; x += (IntervalEnd - IntervalStart) / 100.0)
                 {
                     series.Points.Add(new DataPoint(x, evaluator.Evaluate(x)));
                 }
 
                 model.Series.Add(series);
+
+                var zeroLine = new LineSeries
+                {
+                    Color = OxyColor.Parse("#FFA006"),
+                    StrokeThickness = 2,
+                    LineStyle = LineStyle.Solid
+                };
+                zeroLine.Points.Add(new DataPoint(IntervalStart, 0));
+                zeroLine.Points.Add(new DataPoint(IntervalEnd, 0));
+                model.Series.Add(zeroLine);
+
                 PlotModel = model;
             }
             catch (Exception ex)
