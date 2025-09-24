@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace databinding0.ViewModels
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
     {
         private double _intervalStart;
         private double _intervalEnd;
@@ -123,7 +123,46 @@ namespace databinding0.ViewModels
             }
         }
 
+        public string this[string columnName]
+        {
+            get
+            {
+                try
+                {
+                    switch (columnName)
+                    {
+                        case nameof(IntervalStart):
+                            return double.IsNaN(IntervalStart) ? "Неверное число" : null;
+                        case nameof(IntervalEnd):
+                            return double.IsNaN(IntervalEnd) ? "Неверное число" : null;
+                        case nameof(Precision):
+                            return Precision <= 0 ? "Точность должна быть > 0" : null;
+                        case nameof(DecimalPlaces):
+                            return DecimalPlaces < 0 ? "Знаков после запятой не может быть меньше 0" : null;
+                        case nameof(Function):
+                            if (string.IsNullOrWhiteSpace(Function))
+                                return "Введите функцию";
+                            try
+                            {
+                                var evaluator = new FunctionEvaluator(Function);
+                                evaluator.Evaluate(0); // проверка хотя бы одной точки
+                                return null;
+                            }
+                            catch
+                            {
+                                return "Некорректная функция";
+                            }
+                    }
+                }
+                catch
+                {
+                    return "Ошибка ввода";
+                }
+                return null;
+            }
+        }
 
+        public string Error => null;
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
